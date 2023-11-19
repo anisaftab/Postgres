@@ -1453,7 +1453,12 @@ create_hashjoin_plan(PlannerInfo *root,
 	Hash	   *hash_plan;
 	// CSI3530 IL FAUT AJOUTER UN AUTRE HASH_PLAN, DEUX AU TOTAL (INNER ET OUTER)
 	// CSI3130 You must add another hash plan, two in total (inner and outer)
-
+	/*CSI 3130 */
+	/** The outer hash plan was added here to execute the symmetrice hash join which requires
+	*   hashing and probing of outer relation as well.
+	*/
+	Hash  *outer_hash_plan;
+	
 	/* Get the join qual clauses (in plain expression form) */
 	if (IS_OUTER_JOIN(best_path->jpath.jointype))
 	{
@@ -1495,13 +1500,19 @@ create_hashjoin_plan(PlannerInfo *root,
 	// CSI3530 Il faut construire le hash node et le hash join node pour les deux hash plans (outer et inner)
 	// CSI3130 You must build the hash node and hash join node for both hash plans (outer and inner)
 	hash_plan = make_hash(inner_plan);
+	/** CSI 3130
+	* Here we will build the hash for outer plan as well.
+	*/
+	outer_hash_plan = make_hash(outer_plan);
+	
 	join_plan = make_hashjoin(tlist,
 							  joinclauses,
 							  otherclauses,
 							  hashclauses,
-							  outer_plan,
+						//    outerplan,    CSI 3130 This line was commented out since we are already creating an outer hash plan
 							  (Plan *) hash_plan,
-							  // CSI3530 //CSI3130 ...
+							  // CSI3530 //CSI3130 Added the plan for outer hash plan as well
+		                      (Plan*) outer_hash_plan,
 							  best_path->jpath.jointype);
 
 	copy_path_costsize(&join_plan->join.plan, &best_path->jpath.path);

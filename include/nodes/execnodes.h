@@ -771,7 +771,7 @@ typedef struct PlanState
 	 * Other run-time state needed by most if not all node types.
 	 */
 	TupleTableSlot *ps_OuterTupleSlot;	/* slot for current "outer" tuple */
-										/* CSI3530 / CSI3130 -slot for current "INNER" tuple */
+	TupleTableSlot *ps_InnerTupleSlot;  /* CSI3530 / CSI3130:-slot for current "INNER" tuple */
 	TupleTableSlot *ps_ResultTupleSlot; /* slot for my result tuples */
 	ExprContext *ps_ExprContext;	/* node's expression-evaluation context */
 	ProjectionInfo *ps_ProjInfo;	/* info for doing tuple projection */
@@ -1116,20 +1116,28 @@ typedef struct HashJoinState
 {
 	JoinState	js;				/* its first field is NodeTag */
 	List	   *hashclauses;	/* list of ExprState nodes */
-	HashJoinTable hj_HashTable;
-	uint32		hj_CurHashValue;
-	int			hj_CurBucketNo;
-	HashJoinTuple hj_CurTuple;
+	HashJoinTable inner_hj_HashTable;  //CSI3130:Modified hj_HashTable to this for inner join Hash Table for bi-directional probing
+	HashJoinTable outer_hj_HashTable;  //CSI3130:Added outer_hj_HashTable for outer join Hash Table
+	uint32		inner_hj_CurHashValue; //CSI3130: Modified current hash value to inner hash value 
+	uint32		outer_hj_CurHashValue; //CSI3130: Added outer hash value 
+	int			inner_hj_CurBucketNo;  //CSI3130: Modified to change the int value to inner Current Bucket No.
+	int			outer_hj_CurBucketNo;  //CSI3130: Added outer Current bucket no. tracker.
+	HashJoinTuple inner_hj_CurTuple;   //CSI3130: Changed to reflect the inner Current Tuple
+	HashJoinTuple outer_hj_CurTuple;   //CSI3130: Added to reflect the outer Current Tuple
 	List	   *hj_OuterHashKeys;		/* list of ExprState nodes */
 	List	   *hj_InnerHashKeys;		/* list of ExprState nodes */
 	List	   *hj_HashOperators;		/* list of operator OIDs */
 	TupleTableSlot *hj_OuterTupleSlot;
-	TupleTableSlot *hj_HashTupleSlot;
+	TupleTableSlot* hj_InnerTupleSlot; //CSI3130: Modified for inner tuple slot
+	TupleTableSlot *inner_hj_HashTupleSlot; //CSI3130: Added inner hash tuple slot tracker
+	TupleTableSlot *outer_hj_HashTupleSlot; //CSI3130: Added outer hash tuple slot tracker
 	TupleTableSlot *hj_NullInnerTupleSlot;
 	TupleTableSlot *hj_FirstOuterTupleSlot;
+	TupleTableSlot* hj_FirstInnerTupleSlot; //CSI3130:Added Inner table tuple slot
 	bool		hj_NeedNewOuter;
 	bool		hj_MatchedOuter;
 	bool		hj_OuterNotEmpty;
+	bool        isNextFetchInner;		//CSI3130: fasle -> outer, true -> inner
 } HashJoinState;
 
 
