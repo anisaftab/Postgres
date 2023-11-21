@@ -1438,7 +1438,7 @@ create_mergejoin_plan(PlannerInfo *root,
 	return join_plan;
 }
 
-// CSI3530 //CSI3130
+// CSI3530 //CSI3130:
 static HashJoin *
 create_hashjoin_plan(PlannerInfo *root,
 					 HashPath *best_path,
